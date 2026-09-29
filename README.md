@@ -1,4 +1,4 @@
-# app_mobile
+# flightbook_mobile
 
 A new Flutter project.
 
