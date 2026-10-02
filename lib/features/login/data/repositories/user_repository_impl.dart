@@ -9,4 +9,17 @@ class UserRepositoryImpl extends UserRepository {
   Future<List<UserModel>> getUsers() async {
     return await datasource.getUser();
   }
+
+  @override
+  Future<UserModel> saveUser({
+    required String userName,
+    required String userEmail,
+    required String userPassword,
+  }) {
+    return datasource.saveUser(
+      userName: userName,
+      userEmail: userEmail,
+      userPassword: userPassword,
+    );
+  }
 }

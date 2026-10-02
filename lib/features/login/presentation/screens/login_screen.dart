@@ -1,125 +1,134 @@
+import 'package:app_mobile/core/app_color.dart';
+import 'package:app_mobile/core/app_string.dart';
 import 'package:app_mobile/features/login/presentation/provider/user_provider.dart';
+import 'package:app_mobile/features/login/presentation/widget/button.dart';
+import 'package:app_mobile/features/login/presentation/widget/inputtext.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:toastification/toastification.dart';
+
+final switchSignUp = StateProvider<bool>((ref) => false);
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
+
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final userNameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  bool obscurePassword = true;
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
 
-  void login() {
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
-    final users = ref.read(userProvider).value ?? [];
-    for (final user in users) {
-      if (user.email == email && user.password == password) {
-        context.go('/home');
-        return;
-      }
-    }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Invalid email or password')));
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(userProvider.notifier).loadUsers();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final users = ref.watch(userProvider);
+    final switchPage = ref.watch(switchSignUp);
+    final state = ref.watch(userProvider);
     return Scaffold(
-      body: users.when(
-        loading: () {
-          return const Center(child: CircularProgressIndicator());
-        },
-        error: (error, stackTrace) {
-          return Center(child: Text(error.toString()));
-        },
-        data: (_) {
-          return SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.lock_outline, size: 80),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Welcome Back',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            switchPage
+                ? Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      AppString.createAccount,
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Login to continue',
-                      style: TextStyle(fontSize: 16),
+                  )
+                : Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      AppString.loginString,
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
-                    const SizedBox(height: 40),
-                    TextField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'Enter your email',
-                        prefixIcon: Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(),
-                      ),
+                  ),
+            const SizedBox(height: 24),
+            switchPage
+                ? Inputtext(
+                    controller: userNameController,
+                    label: AppString.enterUserName,
+                  )
+                : const SizedBox(),
+            switchPage ? const SizedBox(height: 12) : const SizedBox(),
+            Inputtext(controller: emailController, label: AppString.enterEmail),
+            const SizedBox(height: 12),
+            Inputtext(
+              controller: passwordController,
+              label: AppString.enterPassword,
+            ),
+            const SizedBox(height: 12),
+            switchPage ? SizedBox() : Text(AppString.forgotPassword),
+            const SizedBox(height: 12),
+            Button(
+              onTap: () async {
+                if (switchPage) {
+                  await ref
+                      .read(userProvider.notifier)
+                      .saveUser(
+                        userName: userNameController.text.trim(),
+                        userEmail: emailController.text.trim(),
+                        userPassword: passwordController.text.trim(),
+                      );
+                } else {
+                  final success = await ref
+                      .read(userProvider.notifier)
+                      .loginUser(
+                        userEmail: emailController.text.trim(),
+                        userPassword: passwordController.text.trim(),
+                      );
+
+                  if (success && state.status == UserStatus.success) {
+                    context.go('/home');
+                  } else {
+                    toastification.show(
+                      title: Text('Invalid email or password'),
+                      autoCloseDuration: const Duration(seconds: 5),
+                    );
+                  }
+                }
+              },
+              color: AppColor.slate,
+              label: state.status == UserStatus.loading
+                  ? CircularProgressIndicator()
+                  : Text(AppString.loginToContinue),
+            ),
+            const SizedBox(height: 12),
+            RichText(
+              text: TextSpan(
+                text: AppString.dontHaveAccount,
+                style: Theme.of(context).textTheme.bodyMedium,
+                children: [
+                  TextSpan(
+                    text: ' ${AppString.signUp}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
                     ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: passwordController,
-                      obscureText: obscurePassword,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        hintText: 'Enter your password',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        border: const OutlineInputBorder(),
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              obscurePassword = !obscurePassword;
-                            });
-                          },
-                          icon: Icon(
-                            obscurePassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: login,
-                        child: const Text(
-                          'Login',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        ref.read(switchSignUp.notifier).state = !switchPage;
+                      },
+                  ),
+                ],
               ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
