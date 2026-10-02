@@ -72,8 +72,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               label: AppString.enterPassword,
             ),
             const SizedBox(height: 12),
-            switchPage ? SizedBox() : Text(AppString.forgotPassword),
-            const SizedBox(height: 12),
             Button(
               onTap: () async {
                 if (switchPage) {
@@ -102,29 +100,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   }
                 }
               },
-              color: AppColor.slate,
+              color: AppColor.navy,
               label: state.status == UserStatus.loading
                   ? CircularProgressIndicator()
-                  : Text(AppString.loginToContinue),
-            ),
-            const SizedBox(height: 12),
-            RichText(
-              text: TextSpan(
-                text: AppString.dontHaveAccount,
-                style: Theme.of(context).textTheme.bodyMedium,
-                children: [
-                  TextSpan(
-                    text: ' ${AppString.signUp}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                  : Text(
+                      AppString.loginToContinue,
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        ref.read(switchSignUp.notifier).state = !switchPage;
-                      },
-                  ),
-                ],
+            ),
+            const SizedBox(height: 24),
+            Align(
+              alignment: Alignment.center,
+              child: RichText(
+                text: TextSpan(
+                  text: AppString.dontHaveAccount,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  children: [
+                    TextSpan(
+                      text: ' ${AppString.signUp}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.navy,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          ref.read(switchSignUp.notifier).state = !switchPage;
+                        },
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

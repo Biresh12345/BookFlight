@@ -23,7 +23,7 @@ class AppString {
   static const String logout = "Log Out";
   static const String signUp = "Sign Up";
   static const String welcomeBack = "Welcome Back";
-  static const String loginToContinue = "Login to continue";
+  static const String loginToContinue = "Sign In";
   static const String createAccount = "Create Account";
   static const String email = "Email";
   static const String password = "Password";

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class AppTheme {
   AppTheme._();
   static final ThemeData lightTheme = ThemeData(
-    scaffoldBackgroundColor: AppColor.lightBlue,
+    scaffoldBackgroundColor: AppColor.paleBlue,
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ButtonStyle(
         foregroundColor: WidgetStatePropertyAll(Colors.white),

@@ -74,52 +74,31 @@ class _FlightScreenState extends ConsumerState<FlightScreen> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      drawer: Drawer(),
-      appBar: AppBar(
-        title: Text("Find your flight"),
-        actions: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColor.paleBlue,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              Icons.flight_takeoff_rounded,
-              color: theme.colorScheme.primary,
-              size: 24,
+      body: Column(
+        children: [
+          _buildHeader(theme),
+          Expanded(
+            child: flightsState.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stackTrace) => _buildError(error),
+              data: (flights) {
+                final displayFlights = filteredFlights ?? flights;
+
+                if (displayFlights.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  itemCount: displayFlights.length,
+                  itemBuilder: (context, index) {
+                    return _buildFlightCard(displayFlights[index], theme);
+                  },
+                );
+              },
             ),
           ),
-          SizedBox(width: 12),
         ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(theme),
-            Expanded(
-              child: flightsState.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stackTrace) => _buildError(error),
-                data: (flights) {
-                  final displayFlights = filteredFlights ?? flights;
-
-                  if (displayFlights.isEmpty) {
-                    return _buildEmptyState();
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                    itemCount: displayFlights.length,
-                    itemBuilder: (context, index) {
-                      return _buildFlightCard(displayFlights[index], theme);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -141,6 +120,7 @@ class _FlightScreenState extends ConsumerState<FlightScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: MediaQuery.of(context).padding.top),
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
